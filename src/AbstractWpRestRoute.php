@@ -20,22 +20,16 @@ abstract class AbstractWpRestRoute implements Attributable
 
     /**
      * Namespace for the REST API route.
-     *
-     * @var string
      */
     public string $namespace;
 
     /**
      * Route pattern for the REST API.
-     *
-     * @var string
      */
     public string $route;
 
     /**
      * Permission callback class for the route.
-     *
-     * @var string|null
      */
     public ?string $classPermission = null;
 
