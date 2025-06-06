@@ -12,7 +12,9 @@ namespace Pollora\Support;
 class WpGlobals
 {
     /**
-     * List of essential WordPress globals that are commonly needed
+     * List of essential WordPress globals that are commonly needed.
+     *
+     * @var array<int, string>
      */
     private static array $essentialGlobals = [
         'current_user',
@@ -37,19 +39,19 @@ class WpGlobals
      */
     public static function wrap(callable $callback, ?array $globals = null): callable
     {
-        // Si $globals est null, utiliser la liste par défaut
+        // If $globals is null, use the default list
         $globalKeys = $globals ?? self::$essentialGlobals;
 
-        // Capturer les variables globales
+        // Capture the global variables
         $capturedGlobals = array_intersect_key($GLOBALS, array_flip($globalKeys));
 
         return static function (...$args) use ($callback, $capturedGlobals) {
-            // Réinjecter les globales dans le contexte
+            // Reinject the globals into the context
             foreach ($capturedGlobals as $key => $value) {
                 $GLOBALS[$key] = $value;
             }
 
-            // Exécuter le callback
+            // Execute the callback
             return $callback(...$args);
         };
     }
