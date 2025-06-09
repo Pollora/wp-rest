@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Pollora\WpRest;
 
 use Pollora\Attributes\Attributable;
-use Pollora\Attributes\AttributableHookTrait;
 
 /**
  * Base class for REST API controllers using WpRestRoute attributes.
@@ -16,8 +15,6 @@ use Pollora\Attributes\AttributableHookTrait;
  */
 abstract class AbstractWpRestRoute implements Attributable
 {
-    use AttributableHookTrait;
-
     /**
      * Namespace for the REST API route.
      */
