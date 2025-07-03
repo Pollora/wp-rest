@@ -15,9 +15,9 @@ use Spatie\StructureDiscoverer\Data\DiscoveredStructure;
 /**
  * WP REST Discovery
  *
- * Discovers methods decorated with WpRestRoute attributes and registers them
- * as WordPress REST API endpoints. This discovery class scans for methods
- * that have the #[WpRestRoute] attribute and processes them for registration.
+ * Discovers classes decorated with WpRestRoute attributes and registers them
+ * as WordPress REST API endpoints. This discovery class scans for classes
+ * that have the #[WpRestRoute] attribute and processes their methods for registration.
  *
  * @package Pollora\WpRest\Infrastructure\Services
  */
@@ -44,14 +44,7 @@ final class WpRestDiscovery implements DiscoveryInterface
         }
 
         // Check if class has WpRestRoute attribute
-        $wpRestRouteAttribute = null;
-        foreach ($structure->attributes as $attribute) {
-            if ($attribute->class === WpRestRoute::class) {
-                $wpRestRouteAttribute = $attribute;
-                break;
-            }
-        }
-
+        $wpRestRouteAttribute = $this->findWpRestRouteAttribute($structure->attributes);
         if ($wpRestRouteAttribute === null) {
             return;
         }
@@ -90,6 +83,23 @@ final class WpRestDiscovery implements DiscoveryInterface
     }
 
     /**
+     * Find WpRestRoute attribute in the given attributes array.
+     *
+     * @param array $attributes The attributes to search through
+     * @return object|null The WpRestRoute attribute or null if not found
+     */
+    private function findWpRestRouteAttribute(array $attributes): ?object
+    {
+        foreach ($attributes as $attribute) {
+            if ($attribute->class === WpRestRoute::class) {
+                return $attribute;
+            }
+        }
+
+        return null;
+    }
+
+    /**
      * Process a complete WP REST route configuration from its class and attributes.
      *
      * @param string $className The fully qualified class name
@@ -99,7 +109,6 @@ final class WpRestDiscovery implements DiscoveryInterface
     private function processWpRestRoute(string $className, object $restRouteAttribute): void
     {
         try {
-            // Use reflection to get the WpRestRoute attribute instance
             $reflectionClass = new ReflectionClass($className);
             $wpRestRouteAttributes = $reflectionClass->getAttributes(WpRestRoute::class);
 
@@ -107,12 +116,19 @@ final class WpRestDiscovery implements DiscoveryInterface
                 return;
             }
 
-            // Get the WpRestRoute attribute instance
             /** @var WpRestRoute $wpRestRoute */
             $wpRestRoute = $wpRestRouteAttributes[0]->newInstance();
 
-            // Process method-level attributes for HTTP methods
-            $this->processMethodLevelAttributes($reflectionClass, $className, $wpRestRoute);
+            // Create wrapper once for the class
+            $attributableWrapper = new WpRestAttributableWrapper(
+                $className,
+                $wpRestRoute->namespace,
+                $wpRestRoute->route,
+                $wpRestRoute->permissionCallback
+            );
+
+            // Process all method-level attributes
+            $this->processMethodLevelAttributes($reflectionClass, $attributableWrapper);
 
         } catch (\ReflectionException $e) {
             error_log("Failed to process WP REST route for class {$className}: " . $e->getMessage());
@@ -123,75 +139,68 @@ final class WpRestDiscovery implements DiscoveryInterface
      * Process method-level attributes to register REST endpoints.
      *
      * @param ReflectionClass $reflectionClass The reflection class
-     * @param string $className The class name
-     * @param WpRestRoute $wpRestRoute The WP REST route configuration
+     * @param WpRestAttributableWrapper $attributableWrapper The wrapper instance
      * @return void
      */
-    private function processMethodLevelAttributes(ReflectionClass $reflectionClass, string $className, WpRestRoute $wpRestRoute): void
+    private function processMethodLevelAttributes(ReflectionClass $reflectionClass, WpRestAttributableWrapper $attributableWrapper): void
     {
         try {
-            foreach ($reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC) as $method) {
-                foreach ($method->getAttributes() as $attribute) {
-                    // Process attributes in the WpRestRoute namespace
-                    if (str_contains($attribute->getName(), 'Pollora\\Attributes\\WpRestRoute\\')) {
-                        $this->processMethodAttribute($className, $method, $attribute, $wpRestRoute);
-                    }
-                }
+            $methods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
+
+            foreach ($methods as $method) {
+                $this->processMethodAttributes($method, $attributableWrapper);
             }
         } catch (\ReflectionException $e) {
-            error_log("Failed to process method-level attributes for {$className}: " . $e->getMessage());
+            error_log("Failed to process method-level attributes for {$reflectionClass->getName()}: " . $e->getMessage());
+        }
+    }
+
+    /**
+     * Process all attributes for a single method.
+     *
+     * @param ReflectionMethod $method The method to process
+     * @param WpRestAttributableWrapper $attributableWrapper The wrapper instance
+     * @return void
+     */
+    private function processMethodAttributes(ReflectionMethod $method, WpRestAttributableWrapper $attributableWrapper): void
+    {
+        foreach ($method->getAttributes() as $attribute) {
+            // Process attributes in the WpRestRoute namespace
+            if (!str_contains($attribute->getName(), 'Pollora\\Attributes\\WpRestRoute\\')) {
+                continue;
+            }
+
+            $this->processMethodAttribute($method, $attribute, $attributableWrapper);
         }
     }
 
     /**
      * Process a single method-level attribute for REST route registration.
      *
-     * @param string $className The class name
      * @param ReflectionMethod $method The method with the attribute
      * @param \ReflectionAttribute $attribute The attribute to process
-     * @param WpRestRoute $wpRestRoute The WP REST route configuration
+     * @param WpRestAttributableWrapper $attributableWrapper The wrapper instance
      * @return void
      */
     private function processMethodAttribute(
-        string $className,
         ReflectionMethod $method,
         \ReflectionAttribute $attribute,
-        WpRestRoute $wpRestRoute
+        WpRestAttributableWrapper $attributableWrapper
     ): void {
         try {
             $attributeInstance = $attribute->newInstance();
 
             // Check if the attribute has a handle method and call it
-            if (method_exists($attributeInstance, 'handle')) {
-                // Create an Attributable wrapper that contains the route configuration and the real class instance
-                $attributableInstance = new class($className, $wpRestRoute->namespace, $wpRestRoute->route, $wpRestRoute->permissionCallback) implements \Pollora\Attributes\Attributable {
-                    private mixed $realInstance = null;
-
-                    public function __construct(
-                        private readonly string $className,
-                        public readonly string $namespace,
-                        public readonly string $route,
-                        public readonly ?string $classPermission = null
-                    ) {}
-
-                    public function getRealInstance(): mixed
-                    {
-                        if ($this->realInstance === null) {
-                            $reflectionClass = new \ReflectionClass($this->className);
-                            if ($reflectionClass->isInstantiable()) {
-                                $this->realInstance = $reflectionClass->newInstance();
-                            }
-                        }
-                        return $this->realInstance;
-                    }
-                };
-
-                // Let the attribute handle the registration
-                add_action('rest_api_init', function () use ($attributeInstance, $attributableInstance, $method) {
-                    $attributeInstance->handle(app(), $attributableInstance, $method, $attributeInstance);
-                });
+            if (!method_exists($attributeInstance, 'handle')) {
+                return;
             }
+
+            // Let the attribute handle the registration
+            add_action('rest_api_init', function () use ($attributeInstance, $attributableWrapper, $method) {
+                $attributeInstance->handle(app(), $attributableWrapper, $method, $attributeInstance);
+            });
         } catch (\Throwable $e) {
+            $className = $method->getDeclaringClass()->getName();
             error_log("Failed to process method attribute for {$className}::{$method->getName()}: " . $e->getMessage());
         }
     }
