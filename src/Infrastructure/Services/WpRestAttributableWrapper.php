@@ -9,7 +9,7 @@ use ReflectionClass;
 
 /**
  * Wrapper class to make any class compatible with Attributable interface.
- * 
+ *
  * This class acts as a bridge between regular classes that use WpRestRoute attributes
  * and the Attributable interface required by the Method attribute handlers.
  */
@@ -41,12 +41,12 @@ final readonly class WpRestAttributableWrapper implements Attributable
     {
         try {
             $reflectionClass = new ReflectionClass($this->className);
-            
+
             if ($reflectionClass->isInstantiable()) {
                 return $reflectionClass->newInstance();
             }
         } catch (\Throwable $e) {
-            error_log("Failed to create instance of {$this->className}: " . $e->getMessage());
+            error_log("Failed to create instance of {$this->className}: ".$e->getMessage());
         }
 
         return null;
