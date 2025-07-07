@@ -18,8 +18,6 @@ use Spatie\StructureDiscoverer\Data\DiscoveredStructure;
  * Discovers classes decorated with WpRestRoute attributes and registers them
  * as WordPress REST API endpoints. This discovery class scans for classes
  * that have the #[WpRestRoute] attribute and processes their methods for registration.
- *
- * @package Pollora\WpRest\Infrastructure\Services
  */
 final class WpRestDiscovery implements DiscoveryInterface
 {
@@ -34,7 +32,7 @@ final class WpRestDiscovery implements DiscoveryInterface
     public function discover(DiscoveryLocationInterface $location, DiscoveredStructure $structure): void
     {
         // Only process classes
-        if (!$structure instanceof \Spatie\StructureDiscoverer\Data\DiscoveredClass) {
+        if (! $structure instanceof \Spatie\StructureDiscoverer\Data\DiscoveredClass) {
             return;
         }
 
@@ -77,7 +75,7 @@ final class WpRestDiscovery implements DiscoveryInterface
                 $this->processWpRestRoute($className, $restRouteAttribute);
             } catch (\Throwable $e) {
                 // Log the error but continue with other REST routes
-                error_log("Failed to register WP REST route from class {$className}: " . $e->getMessage());
+                error_log("Failed to register WP REST route from class {$className}: ".$e->getMessage());
             }
         }
     }
@@ -85,7 +83,7 @@ final class WpRestDiscovery implements DiscoveryInterface
     /**
      * Find WpRestRoute attribute in the given attributes array.
      *
-     * @param array $attributes The attributes to search through
+     * @param  array  $attributes  The attributes to search through
      * @return object|null The WpRestRoute attribute or null if not found
      */
     private function findWpRestRouteAttribute(array $attributes): ?object
@@ -102,9 +100,8 @@ final class WpRestDiscovery implements DiscoveryInterface
     /**
      * Process a complete WP REST route configuration from its class and attributes.
      *
-     * @param string $className The fully qualified class name
-     * @param object $restRouteAttribute The Spatie DiscoveredAttribute instance
-     * @return void
+     * @param  string  $className  The fully qualified class name
+     * @param  object  $restRouteAttribute  The Spatie DiscoveredAttribute instance
      */
     private function processWpRestRoute(string $className, object $restRouteAttribute): void
     {
@@ -131,16 +128,15 @@ final class WpRestDiscovery implements DiscoveryInterface
             $this->processMethodLevelAttributes($reflectionClass, $attributableWrapper);
 
         } catch (\ReflectionException $e) {
-            error_log("Failed to process WP REST route for class {$className}: " . $e->getMessage());
+            error_log("Failed to process WP REST route for class {$className}: ".$e->getMessage());
         }
     }
 
     /**
      * Process method-level attributes to register REST endpoints.
      *
-     * @param ReflectionClass $reflectionClass The reflection class
-     * @param WpRestAttributableWrapper $attributableWrapper The wrapper instance
-     * @return void
+     * @param  ReflectionClass  $reflectionClass  The reflection class
+     * @param  WpRestAttributableWrapper  $attributableWrapper  The wrapper instance
      */
     private function processMethodLevelAttributes(ReflectionClass $reflectionClass, WpRestAttributableWrapper $attributableWrapper): void
     {
@@ -151,22 +147,21 @@ final class WpRestDiscovery implements DiscoveryInterface
                 $this->processMethodAttributes($method, $attributableWrapper);
             }
         } catch (\ReflectionException $e) {
-            error_log("Failed to process method-level attributes for {$reflectionClass->getName()}: " . $e->getMessage());
+            error_log("Failed to process method-level attributes for {$reflectionClass->getName()}: ".$e->getMessage());
         }
     }
 
     /**
      * Process all attributes for a single method.
      *
-     * @param ReflectionMethod $method The method to process
-     * @param WpRestAttributableWrapper $attributableWrapper The wrapper instance
-     * @return void
+     * @param  ReflectionMethod  $method  The method to process
+     * @param  WpRestAttributableWrapper  $attributableWrapper  The wrapper instance
      */
     private function processMethodAttributes(ReflectionMethod $method, WpRestAttributableWrapper $attributableWrapper): void
     {
         foreach ($method->getAttributes() as $attribute) {
             // Process attributes in the WpRestRoute namespace
-            if (!str_contains($attribute->getName(), 'Pollora\\Attributes\\WpRestRoute\\')) {
+            if (! str_contains($attribute->getName(), 'Pollora\\Attributes\\WpRestRoute\\')) {
                 continue;
             }
 
@@ -177,10 +172,9 @@ final class WpRestDiscovery implements DiscoveryInterface
     /**
      * Process a single method-level attribute for REST route registration.
      *
-     * @param ReflectionMethod $method The method with the attribute
-     * @param \ReflectionAttribute $attribute The attribute to process
-     * @param WpRestAttributableWrapper $attributableWrapper The wrapper instance
-     * @return void
+     * @param  ReflectionMethod  $method  The method with the attribute
+     * @param  \ReflectionAttribute  $attribute  The attribute to process
+     * @param  WpRestAttributableWrapper  $attributableWrapper  The wrapper instance
      */
     private function processMethodAttribute(
         ReflectionMethod $method,
@@ -191,7 +185,7 @@ final class WpRestDiscovery implements DiscoveryInterface
             $attributeInstance = $attribute->newInstance();
 
             // Check if the attribute has a handle method and call it
-            if (!method_exists($attributeInstance, 'handle')) {
+            if (! method_exists($attributeInstance, 'handle')) {
                 return;
             }
 
@@ -201,7 +195,7 @@ final class WpRestDiscovery implements DiscoveryInterface
             });
         } catch (\Throwable $e) {
             $className = $method->getDeclaringClass()->getName();
-            error_log("Failed to process method attribute for {$className}::{$method->getName()}: " . $e->getMessage());
+            error_log("Failed to process method attribute for {$className}::{$method->getName()}: ".$e->getMessage());
         }
     }
 
