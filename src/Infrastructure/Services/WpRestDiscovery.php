@@ -72,7 +72,7 @@ final class WpRestDiscovery implements DiscoveryInterface
 
             try {
                 // Process the complete WP REST route configuration
-                $this->processWpRestRoute($className, $restRouteAttribute);
+                $this->processWpRestRoute($className);
             } catch (\Throwable $e) {
                 // Log the error but continue with other REST routes
                 error_log("Failed to register WP REST route from class {$className}: ".$e->getMessage());
@@ -101,15 +101,14 @@ final class WpRestDiscovery implements DiscoveryInterface
      * Process a complete WP REST route configuration from its class and attributes.
      *
      * @param  string  $className  The fully qualified class name
-     * @param  object  $restRouteAttribute  The Spatie DiscoveredAttribute instance
      */
-    private function processWpRestRoute(string $className, object $restRouteAttribute): void
+    private function processWpRestRoute(string $className): void
     {
         try {
             $reflectionClass = new ReflectionClass($className);
             $wpRestRouteAttributes = $reflectionClass->getAttributes(WpRestRoute::class);
 
-            if (empty($wpRestRouteAttributes)) {
+            if ($wpRestRouteAttributes === []) {
                 return;
             }
 
@@ -190,7 +189,7 @@ final class WpRestDiscovery implements DiscoveryInterface
             }
 
             // Let the attribute handle the registration
-            add_action('rest_api_init', function () use ($attributeInstance, $attributableWrapper, $method) {
+            add_action('rest_api_init', function () use ($attributeInstance, $attributableWrapper, $method): void {
                 $attributeInstance->handle(app(), $attributableWrapper, $method, $attributeInstance);
             });
         } catch (\Throwable $e) {
