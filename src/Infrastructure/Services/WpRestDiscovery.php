@@ -8,6 +8,8 @@ use Pollora\Attributes\WpRestRoute;
 use Pollora\Discovery\Domain\Contracts\DiscoveryInterface;
 use Pollora\Discovery\Domain\Contracts\DiscoveryLocationInterface;
 use Pollora\Discovery\Domain\Services\IsDiscovery;
+use Pollora\Discovery\Domain\Services\HasInstancePool;
+use Pollora\WpRest\Infrastructure\Services\WpRestAttributableWrapper;
 use ReflectionClass;
 use ReflectionMethod;
 use Spatie\StructureDiscoverer\Data\DiscoveredStructure;
@@ -21,7 +23,12 @@ use Spatie\StructureDiscoverer\Data\DiscoveredStructure;
  */
 final class WpRestDiscovery implements DiscoveryInterface
 {
-    use IsDiscovery;
+    use IsDiscovery, HasInstancePool;
+
+    /**
+     * Cache for wrapper instances to avoid recreating them
+     */
+    private array $wrapperCache = [];
 
     /**
      * {@inheritDoc}
@@ -115,13 +122,19 @@ final class WpRestDiscovery implements DiscoveryInterface
             /** @var WpRestRoute $wpRestRoute */
             $wpRestRoute = $wpRestRouteAttributes[0]->newInstance();
 
-            // Create wrapper once for the class
-            $attributableWrapper = new WpRestAttributableWrapper(
-                $className,
-                $wpRestRoute->namespace,
-                $wpRestRoute->route,
-                $wpRestRoute->permissionCallback
-            );
+            // Create wrapper once for the class (use cache to avoid recreating)
+            $wrapperKey = md5($className . $wpRestRoute->namespace . $wpRestRoute->route);
+            
+            if (!isset($this->wrapperCache[$wrapperKey])) {
+                $this->wrapperCache[$wrapperKey] = new WpRestAttributableWrapper(
+                    $className,
+                    $wpRestRoute->namespace,
+                    $wpRestRoute->route,
+                    $wpRestRoute->permissionCallback
+                );
+            }
+            
+            $attributableWrapper = $this->wrapperCache[$wrapperKey];
 
             // Process all method-level attributes
             $this->processMethodLevelAttributes($reflectionClass, $attributableWrapper);
