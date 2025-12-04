@@ -7,9 +7,8 @@ namespace Pollora\WpRest\Infrastructure\Services;
 use Pollora\Attributes\WpRestRoute;
 use Pollora\Discovery\Domain\Contracts\DiscoveryInterface;
 use Pollora\Discovery\Domain\Contracts\DiscoveryLocationInterface;
-use Pollora\Discovery\Domain\Services\IsDiscovery;
 use Pollora\Discovery\Domain\Services\HasInstancePool;
-use Pollora\WpRest\Infrastructure\Services\WpRestAttributableWrapper;
+use Pollora\Discovery\Domain\Services\IsDiscovery;
 use ReflectionClass;
 use ReflectionMethod;
 use Spatie\StructureDiscoverer\Data\DiscoveredStructure;
@@ -23,7 +22,7 @@ use Spatie\StructureDiscoverer\Data\DiscoveredStructure;
  */
 final class WpRestDiscovery implements DiscoveryInterface
 {
-    use IsDiscovery, HasInstancePool;
+    use HasInstancePool, IsDiscovery;
 
     /**
      * Cache for wrapper instances to avoid recreating them
@@ -123,9 +122,9 @@ final class WpRestDiscovery implements DiscoveryInterface
             $wpRestRoute = $wpRestRouteAttributes[0]->newInstance();
 
             // Create wrapper once for the class (use cache to avoid recreating)
-            $wrapperKey = md5($className . $wpRestRoute->namespace . $wpRestRoute->route);
-            
-            if (!isset($this->wrapperCache[$wrapperKey])) {
+            $wrapperKey = md5($className.$wpRestRoute->namespace.$wpRestRoute->route);
+
+            if (! isset($this->wrapperCache[$wrapperKey])) {
                 $this->wrapperCache[$wrapperKey] = new WpRestAttributableWrapper(
                     $className,
                     $wpRestRoute->namespace,
@@ -133,7 +132,7 @@ final class WpRestDiscovery implements DiscoveryInterface
                     $wpRestRoute->permissionCallback
                 );
             }
-            
+
             $attributableWrapper = $this->wrapperCache[$wrapperKey];
 
             // Process all method-level attributes
