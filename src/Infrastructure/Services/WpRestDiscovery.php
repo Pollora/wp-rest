@@ -132,7 +132,8 @@ final class WpRestDiscovery implements DiscoveryInterface
                     $className,
                     $wpRestRoute->namespace,
                     $wpRestRoute->route,
-                    $wpRestRoute->permissionCallback
+                    $wpRestRoute->permissionCallback,
+                    $reflectionCache
                 );
             }
 

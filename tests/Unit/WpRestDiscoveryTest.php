@@ -5,6 +5,7 @@ declare(strict_types=1);
 use Pollora\Attributes\WpRestRoute;
 use Pollora\Attributes\WpRestRoute\Method;
 use Pollora\Discovery\Domain\Models\DiscoveryLocation;
+use Pollora\Discovery\Infrastructure\Services\ReflectionCache;
 use Pollora\WpRest\Infrastructure\Services\WpRestDiscovery;
 
 // Mock WordPress functions if they don't exist
@@ -134,6 +135,7 @@ describe('WpRestDiscovery', function () {
 
         $discovery = new WpRestDiscovery;
         $location = new DiscoveryLocation('', '/test/path');
+        $reflectionCache = new ReflectionCache();
 
         // Add a simple test item to verify the apply logic works
         $discovery->getItems()->add($location, [
@@ -148,6 +150,7 @@ describe('WpRestDiscovery', function () {
                 namespace: '',
                 file: '/test/TestDocumentAPI.php'
             ),
+            'reflection_cache' => $reflectionCache,
         ]);
 
         // The apply method should not throw even if reflection fails
@@ -160,6 +163,7 @@ describe('WpRestDiscovery', function () {
     test('handles reflection errors gracefully', function () {
         $discovery = new WpRestDiscovery;
         $location = new DiscoveryLocation('', '/test/path');
+        $reflectionCache = new ReflectionCache();
 
         // Add an item with a non-existent class
         $discovery->getItems()->add($location, [
@@ -174,6 +178,7 @@ describe('WpRestDiscovery', function () {
                 namespace: '',
                 file: '/test/NonExistentClass.php'
             ),
+            'reflection_cache' => $reflectionCache,
         ]);
 
         // Should not throw, just log errors
