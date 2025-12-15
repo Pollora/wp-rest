@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Pollora\WpRest\Infrastructure\Services;
 
 use Pollora\Attributes\Attributable;
-use ReflectionClass;
 
 /**
  * Wrapper class to make any class compatible with Attributable interface.

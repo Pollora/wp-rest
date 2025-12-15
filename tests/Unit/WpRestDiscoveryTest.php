@@ -135,7 +135,7 @@ describe('WpRestDiscovery', function () {
 
         $discovery = new WpRestDiscovery;
         $location = new DiscoveryLocation('', '/test/path');
-        $reflectionCache = new ReflectionCache();
+        $reflectionCache = new ReflectionCache;
 
         // Add a simple test item to verify the apply logic works
         $discovery->getItems()->add($location, [
@@ -163,7 +163,7 @@ describe('WpRestDiscovery', function () {
     test('handles reflection errors gracefully', function () {
         $discovery = new WpRestDiscovery;
         $location = new DiscoveryLocation('', '/test/path');
-        $reflectionCache = new ReflectionCache();
+        $reflectionCache = new ReflectionCache;
 
         // Add an item with a non-existent class
         $discovery->getItems()->add($location, [
