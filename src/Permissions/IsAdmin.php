@@ -14,7 +14,7 @@ class IsAdmin implements Permission
      * Checks if the current user has admin permissions.
      *
      * @param  WP_REST_Request  $request  The REST request instance.
-     * @return bool|\WP_Error True if the user is an admin, WP_Error otherwise.
+     * @return bool|WP_Error True if the user is an admin, WP_Error otherwise.
      *
      * @throws \Exception
      */

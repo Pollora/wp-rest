@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use Pollora\Attributes\Attributable;
 use Pollora\Attributes\WpRestRoute;
 use Pollora\Attributes\WpRestRoute\Method;
 use Pollora\Discovery\Domain\Models\DiscoveryLocation;
@@ -197,7 +198,7 @@ describe('WpRestDiscovery', function () {
         $route = '/documents/(?P<documentId>\\d+)';
 
         // Create wrapper like WpRestDiscovery does
-        $wrapper = new class($className, $namespace, $route, null) implements \Pollora\Attributes\Attributable
+        $wrapper = new class($className, $namespace, $route, null) implements Attributable
         {
             private mixed $realInstance = null;
 
@@ -211,7 +212,7 @@ describe('WpRestDiscovery', function () {
             public function getRealInstance(): mixed
             {
                 if ($this->realInstance === null) {
-                    $reflectionClass = new \ReflectionClass($this->className);
+                    $reflectionClass = new ReflectionClass($this->className);
                     if ($reflectionClass->isInstantiable()) {
                         $this->realInstance = $reflectionClass->newInstance();
                     }
@@ -221,7 +222,7 @@ describe('WpRestDiscovery', function () {
             }
         };
 
-        expect($wrapper)->toBeInstanceOf(\Pollora\Attributes\Attributable::class);
+        expect($wrapper)->toBeInstanceOf(Attributable::class);
         expect($wrapper->namespace)->toBe($namespace);
         expect($wrapper->route)->toBe($route);
         expect($wrapper->getRealInstance())->toBeInstanceOf(TestDocumentAPI::class);

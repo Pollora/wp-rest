@@ -14,7 +14,7 @@ class IsLoggedIn implements Permission
      * Checks if the current user is logged in.
      *
      * @param  WP_REST_Request  $request  The REST request instance.
-     * @return bool|\WP_Error True if the user is logged in, WP_Error otherwise.
+     * @return bool|WP_Error True if the user is logged in, WP_Error otherwise.
      *
      * @throws \Exception
      */

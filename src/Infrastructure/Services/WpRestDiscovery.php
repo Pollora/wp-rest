@@ -7,10 +7,12 @@ namespace Pollora\WpRest\Infrastructure\Services;
 use Pollora\Attributes\WpRestRoute;
 use Pollora\Discovery\Domain\Contracts\DiscoveryInterface;
 use Pollora\Discovery\Domain\Contracts\DiscoveryLocationInterface;
+use Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface;
 use Pollora\Discovery\Domain\Services\HasInstancePool;
 use Pollora\Discovery\Domain\Services\IsDiscovery;
 use ReflectionClass;
 use ReflectionMethod;
+use Spatie\StructureDiscoverer\Data\DiscoveredClass;
 use Spatie\StructureDiscoverer\Data\DiscoveredStructure;
 
 /**
@@ -35,10 +37,10 @@ final class WpRestDiscovery implements DiscoveryInterface
      * Discovers classes with WpRestRoute attributes and collects them for registration.
      * Only processes classes that have the WpRestRoute attribute.
      */
-    public function discover(DiscoveryLocationInterface $location, DiscoveredStructure $structure, ?\Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface $reflectionCache = null): void
+    public function discover(DiscoveryLocationInterface $location, DiscoveredStructure $structure, ?ReflectionCacheInterface $reflectionCache = null): void
     {
         // Only process classes
-        if (! $structure instanceof \Spatie\StructureDiscoverer\Data\DiscoveredClass) {
+        if (! $structure instanceof DiscoveredClass) {
             return;
         }
 
@@ -109,9 +111,9 @@ final class WpRestDiscovery implements DiscoveryInterface
      * Process a complete WP REST route configuration from its class and attributes.
      *
      * @param  string  $className  The fully qualified class name
-     * @param  \Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface|null  $reflectionCache  Optional reflection cache
+     * @param  ReflectionCacheInterface|null  $reflectionCache  Optional reflection cache
      */
-    private function processWpRestRoute(string $className, ?\Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface $reflectionCache = null): void
+    private function processWpRestRoute(string $className, ?ReflectionCacheInterface $reflectionCache = null): void
     {
         try {
             $reflectionClass = $reflectionCache->getClassReflection($className);

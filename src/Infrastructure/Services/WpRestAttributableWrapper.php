@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pollora\WpRest\Infrastructure\Services;
 
 use Pollora\Attributes\Attributable;
+use Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface;
 
 /**
  * Wrapper class to make any class compatible with Attributable interface.
@@ -21,7 +22,7 @@ final readonly class WpRestAttributableWrapper implements Attributable
         public string $namespace,
         public string $route,
         public ?string $classPermission = null,
-        private ?\Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface $reflectionCache = null
+        private ?ReflectionCacheInterface $reflectionCache = null
     ) {
         $this->realInstance = $this->createRealInstance();
     }
