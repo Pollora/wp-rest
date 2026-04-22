@@ -11,17 +11,17 @@ use Pollora\WpRest\Infrastructure\Services\WpRestDiscovery;
 
 // Mock WordPress functions if they don't exist
 if (! function_exists('register_rest_route')) {
-    function register_rest_route($namespace, $route, $args)
+    function register_rest_route($namespace, $route, $args): bool
     {
         global $registered_routes;
-        $registered_routes[] = compact('namespace', 'route', 'args');
+        $registered_routes[] = ['namespace' => $namespace, 'route' => $route, 'args' => $args];
 
         return true;
     }
 }
 
 if (! function_exists('add_action')) {
-    function add_action($hook, $callback, $priority = 10, $accepted_args = 1)
+    function add_action($hook, $callback, $priority = 10, $accepted_args = 1): bool
     {
         global $wp_actions;
         $wp_actions[$hook][] = $callback;
@@ -90,15 +90,15 @@ class MockDiscoveredClass
     ) {}
 }
 
-describe('WpRestDiscovery', function () {
+describe('WpRestDiscovery', function (): void {
 
-    beforeEach(function () {
+    beforeEach(function (): void {
         global $registered_routes, $wp_actions;
         $registered_routes = [];
         $wp_actions = [];
     });
 
-    test('discover method processes only DiscoveredClass instances', function () {
+    test('discover method processes only DiscoveredClass instances', function (): void {
         $discovery = new WpRestDiscovery;
 
         // Test that discovery starts empty
@@ -111,7 +111,7 @@ describe('WpRestDiscovery', function () {
         expect($discovery->getItems()->all())->toHaveCount(1);
     });
 
-    test('basic discovery functionality works', function () {
+    test('basic discovery functionality works', function (): void {
         $discovery = new WpRestDiscovery;
 
         // Test that we can manually add items (simulating discovery)
@@ -131,7 +131,7 @@ describe('WpRestDiscovery', function () {
         expect($discovery->getItems()->all())->toHaveCount(1);
     });
 
-    test('registers REST routes when applying discovered items', function () {
+    test('registers REST routes when applying discovered items', function (): void {
         global $registered_routes, $wp_actions;
 
         $discovery = new WpRestDiscovery;
@@ -161,7 +161,7 @@ describe('WpRestDiscovery', function () {
         expect($discovery->getItems()->all())->toHaveCount(1);
     });
 
-    test('handles reflection errors gracefully', function () {
+    test('handles reflection errors gracefully', function (): void {
         $discovery = new WpRestDiscovery;
         $location = new DiscoveryLocation('', '/test/path');
         $reflectionCache = new ReflectionCache;
@@ -186,19 +186,19 @@ describe('WpRestDiscovery', function () {
         expect(fn () => $discovery->apply())->not->toThrow(Exception::class);
     });
 
-    test('returns correct identifier', function () {
+    test('returns correct identifier', function (): void {
         $discovery = new WpRestDiscovery;
         expect($discovery->getIdentifier())->toBe('wp_rest_routes');
     });
 
-    test('wrapper system works with non-Attributable classes', function () {
+    test('wrapper system works with non-Attributable classes', function (): void {
         // Test the core wrapper functionality separately
         $className = 'TestDocumentAPI';
         $namespace = 'api/v1';
         $route = '/documents/(?P<documentId>\\d+)';
 
         // Create wrapper like WpRestDiscovery does
-        $wrapper = new class($className, $namespace, $route, null) implements Attributable
+        $wrapper = new class($className, $namespace, $route) implements Attributable
         {
             private mixed $realInstance = null;
 
