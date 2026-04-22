@@ -46,8 +46,8 @@ final readonly class WpRestAttributableWrapper implements Attributable
             if ($reflectionClass->isInstantiable()) {
                 return $reflectionClass->newInstance();
             }
-        } catch (\Throwable $e) {
-            error_log("Failed to create instance of {$this->className}: ".$e->getMessage());
+        } catch (\Throwable $throwable) {
+            error_log(sprintf('Failed to create instance of %s: ', $this->className).$throwable->getMessage());
         }
 
         return null;
