@@ -148,7 +148,7 @@ final class WpRestDiscovery implements DiscoveryInterface
             $attributableWrapper = $this->wrapperCache[$wrapperKey];
 
             // Process all method-level attributes
-            $this->processMethodLevelAttributes($reflectionClass, $attributableWrapper);
+            $this->processMethodLevelAttributes($className, $attributableWrapper, $reflectionCache);
 
         } catch (\ReflectionException $reflectionException) {
             $this->logger?->error(sprintf('Failed to process WP REST route for class %s: ', $className).$reflectionException->getMessage());
@@ -161,10 +161,10 @@ final class WpRestDiscovery implements DiscoveryInterface
      * @param  ReflectionClass  $reflectionClass  The reflection class
      * @param  WpRestAttributableWrapper  $attributableWrapper  The wrapper instance
      */
-    private function processMethodLevelAttributes(ReflectionClass $reflectionClass, WpRestAttributableWrapper $attributableWrapper): void
+    private function processMethodLevelAttributes(string $className, WpRestAttributableWrapper $attributableWrapper, ?ReflectionCacheInterface $reflectionCache = null): void
     {
         try {
-            $methods = $reflectionClass->getMethods(ReflectionMethod::IS_PUBLIC);
+            $methods = $reflectionCache->getPublicMethods($className);
 
             foreach ($methods as $method) {
                 $this->processMethodAttributes($method, $attributableWrapper);
