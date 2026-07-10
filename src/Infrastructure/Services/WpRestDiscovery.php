@@ -11,7 +11,6 @@ use Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface;
 use Pollora\Discovery\Domain\Services\HasInstancePool;
 use Pollora\Discovery\Domain\Services\IsDiscovery;
 use Psr\Log\LoggerInterface;
-use ReflectionClass;
 use ReflectionMethod;
 use Spatie\StructureDiscoverer\Data\DiscoveredClass;
 use Spatie\StructureDiscoverer\Data\DiscoveredStructure;
@@ -158,8 +157,9 @@ final class WpRestDiscovery implements DiscoveryInterface
     /**
      * Process method-level attributes to register REST endpoints.
      *
-     * @param  ReflectionClass  $reflectionClass  The reflection class
+     * @param  string  $className  The fully qualified class name
      * @param  WpRestAttributableWrapper  $attributableWrapper  The wrapper instance
+     * @param  ReflectionCacheInterface|null  $reflectionCache  Optional reflection cache
      */
     private function processMethodLevelAttributes(string $className, WpRestAttributableWrapper $attributableWrapper, ?ReflectionCacheInterface $reflectionCache = null): void
     {
@@ -170,7 +170,7 @@ final class WpRestDiscovery implements DiscoveryInterface
                 $this->processMethodAttributes($method, $attributableWrapper);
             }
         } catch (\ReflectionException $reflectionException) {
-            $this->logger?->error(sprintf('Failed to process method-level attributes for %s: ', $reflectionClass->getName()).$reflectionException->getMessage());
+            $this->logger?->error(sprintf('Failed to process method-level attributes for %s: ', $className).$reflectionException->getMessage());
         }
     }
 
