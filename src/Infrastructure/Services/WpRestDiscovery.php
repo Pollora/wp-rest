@@ -134,15 +134,13 @@ final class WpRestDiscovery implements DiscoveryInterface
             // Create wrapper once for the class (use cache to avoid recreating)
             $wrapperKey = md5($className.$wpRestRoute->namespace.$wpRestRoute->route);
 
-            if (! isset($this->wrapperCache[$wrapperKey])) {
-                $this->wrapperCache[$wrapperKey] = new WpRestAttributableWrapper(
-                    $className,
-                    $wpRestRoute->namespace,
-                    $wpRestRoute->route,
-                    $wpRestRoute->permissionCallback,
-                    $reflectionCache
-                );
-            }
+            $this->wrapperCache[$wrapperKey] ??= new WpRestAttributableWrapper(
+                $className,
+                $wpRestRoute->namespace,
+                $wpRestRoute->route,
+                $wpRestRoute->permissionCallback,
+                $reflectionCache
+            );
 
             $attributableWrapper = $this->wrapperCache[$wrapperKey];
 
