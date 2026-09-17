@@ -6,6 +6,7 @@ namespace Pollora\WpRest\Infrastructure\Services;
 
 use Pollora\Attributes\Attributable;
 use Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface;
+use Psr\Log\LoggerInterface;
 
 /**
  * Wrapper class to make any class compatible with Attributable interface.
@@ -47,7 +48,12 @@ final readonly class WpRestAttributableWrapper implements Attributable
                 return $reflectionClass->newInstance();
             }
         } catch (\Throwable $throwable) {
-            error_log(sprintf('Failed to create instance of %s: ', $this->className).$throwable->getMessage());
+            try {
+                resolve(LoggerInterface::class)->error(
+                    sprintf('Failed to create instance of %s: ', $this->className).$throwable->getMessage()
+                );
+            } catch (\Throwable) {
+            }
         }
 
         return null;
