@@ -28,7 +28,6 @@ function expectsRequest(string $signatureMethod): bool
     $param = (new ReflectionMethod($probe, $signatureMethod))->getParameters()[0];
 
     $method = (new ReflectionClass(Method::class))->getMethod('expectsTheRequest');
-    $method->setAccessible(true);
 
     return $method->invoke(new Method('GET'), $param);
 }
