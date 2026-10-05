@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace Pollora\WpRest\Infrastructure\Services;
 
 use Pollora\Attributes\Attributable;
+use Pollora\Attributes\WpRestRoute\Permission;
 use Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface;
 use Psr\Log\LoggerInterface;
 
@@ -22,7 +23,7 @@ final readonly class WpRestAttributableWrapper implements Attributable
         private string $className,
         public string $namespace,
         public string $route,
-        public ?string $classPermission = null,
+        public string|Permission|null $classPermission = null,
         private ?ReflectionCacheInterface $reflectionCache = null
     ) {
         $this->realInstance = $this->createRealInstance();
