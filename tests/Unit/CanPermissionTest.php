@@ -3,7 +3,7 @@
 declare(strict_types=1);
 
 use Brain\Monkey\Functions;
-use Pollora\Attributes\WpRestRoute\Method;
+use Pollora\WpRest\Infrastructure\Services\WpRestRouteRegistrar;
 use Pollora\WpRest\Permissions\Can;
 use Tests\Unit\Role\Fixtures\EventCap;
 
@@ -37,9 +37,9 @@ it("refuses with WordPress's authorization status", function (): void {
 
 it('is accepted as an instance by #[Method] and #[WpRestRoute]', function (): void {
     Functions\when('current_user_can')->justReturn(true);
-    $resolve = new ReflectionMethod(Method::class, 'resolvePermissionCallback');
+    $resolve = new ReflectionMethod(WpRestRouteRegistrar::class, 'resolvePermissionCallback');
 
-    $callback = $resolve->invoke(new Method('GET', permissionCallback: new Can('edit_posts')), new Can('edit_posts'));
+    $callback = $resolve->invoke(new WpRestRouteRegistrar, new Can('edit_posts'));
 
     expect($callback(Mockery::mock(WP_REST_Request::class)))->toBeTrue();
 });
