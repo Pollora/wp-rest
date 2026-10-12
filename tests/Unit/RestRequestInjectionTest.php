@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-use Pollora\Attributes\WpRestRoute\Method;
+use Pollora\WpRest\Infrastructure\Services\WpRestRouteRegistrar;
 
 /**
  * Which arguments a REST handler is invoked with.
@@ -27,12 +27,12 @@ function expectsRequest(string $signatureMethod): bool
 
     $param = (new ReflectionMethod($probe, $signatureMethod))->getParameters()[0];
 
-    $method = (new ReflectionClass(Method::class))->getMethod('expectsTheRequest');
+    $method = (new ReflectionClass(WpRestRouteRegistrar::class))->getMethod('expectsTheRequest');
 
-    return $method->invoke(new Method('GET'), $param);
+    return $method->invoke(new WpRestRouteRegistrar, $param);
 }
 
-describe('Method::expectsTheRequest()', function (): void {
+describe('WpRestRouteRegistrar::expectsTheRequest()', function (): void {
     it('gives the request to a parameter that asks for it by type', function (): void {
         expect(expectsRequest('withRequest'))->toBeTrue();
     });

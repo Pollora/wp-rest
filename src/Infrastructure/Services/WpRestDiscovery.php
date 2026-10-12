@@ -4,7 +4,9 @@ declare(strict_types=1);
 
 namespace Pollora\WpRest\Infrastructure\Services;
 
+use Pollora\Attributes\Contracts\HandlesAttributes;
 use Pollora\Attributes\WpRestRoute;
+use Pollora\Attributes\WpRestRoute\Method;
 use Pollora\Discovery\Domain\Contracts\DiscoveryInterface;
 use Pollora\Discovery\Domain\Contracts\DiscoveryLocationInterface;
 use Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface;
@@ -33,7 +35,8 @@ final class WpRestDiscovery implements DiscoveryInterface
     private array $wrapperCache = [];
 
     public function __construct(
-        private readonly ?LoggerInterface $logger = null
+        private readonly ?LoggerInterface $logger = null,
+        private readonly WpRestRouteRegistrar $registrar = new WpRestRouteRegistrar,
     ) {}
 
     /**
@@ -205,15 +208,19 @@ final class WpRestDiscovery implements DiscoveryInterface
         try {
             $attributeInstance = $attribute->newInstance();
 
-            // Check if the attribute has a handle method and call it
-            if (! method_exists($attributeInstance, 'handle')) {
+            if ($attributeInstance instanceof Method) {
+                add_action('rest_api_init', function () use ($attributeInstance, $attributableWrapper, $method): void {
+                    $this->registrar->register($attributableWrapper, $method, $attributeInstance);
+                });
+
                 return;
             }
 
-            // Let the attribute handle the registration
-            add_action('rest_api_init', function () use ($attributeInstance, $attributableWrapper, $method): void {
-                $attributeInstance->handle(app(), $attributableWrapper, $method, $attributeInstance);
-            });
+            if ($attributeInstance instanceof HandlesAttributes) {
+                add_action('rest_api_init', function () use ($attributeInstance, $attributableWrapper, $method): void {
+                    $attributeInstance->handle(app(), $attributableWrapper, $method, $attributeInstance);
+                });
+            }
         } catch (\Throwable $throwable) {
             $className = $method->getDeclaringClass()->getName();
             $this->logger?->error(sprintf('Failed to process method attribute for %s::%s: ', $className, $method->getName()).$throwable->getMessage());
