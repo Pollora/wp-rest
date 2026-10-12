@@ -12,6 +12,7 @@ use Pollora\Discovery\Domain\Contracts\DiscoveryLocationInterface;
 use Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface;
 use Pollora\Discovery\Domain\Services\HasInstancePool;
 use Pollora\Discovery\Domain\Services\IsDiscovery;
+use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
 use Spatie\StructureDiscoverer\Data\DiscoveredClass;
@@ -34,9 +35,13 @@ final class WpRestDiscovery implements DiscoveryInterface
      */
     private array $wrapperCache = [];
 
+    /**
+     * @param  ContainerInterface|null  $container  Handed to custom attributes implementing HandlesAttributes
+     */
     public function __construct(
         private readonly ?LoggerInterface $logger = null,
         private readonly WpRestRouteRegistrar $registrar = new WpRestRouteRegistrar,
+        private readonly ?ContainerInterface $container = null,
     ) {}
 
     /**
@@ -137,12 +142,12 @@ final class WpRestDiscovery implements DiscoveryInterface
             // Create wrapper once for the class (use cache to avoid recreating)
             $wrapperKey = md5($className.$wpRestRoute->namespace.$wpRestRoute->route);
 
+            // The controller comes from the instance pool, which gives it its dependencies
             $this->wrapperCache[$wrapperKey] ??= new WpRestAttributableWrapper(
-                $className,
+                $this->getInstanceFromPool($className),
                 $wpRestRoute->namespace,
                 $wpRestRoute->route,
                 $wpRestRoute->permissionCallback,
-                $reflectionCache
             );
 
             $attributableWrapper = $this->wrapperCache[$wrapperKey];
@@ -218,7 +223,7 @@ final class WpRestDiscovery implements DiscoveryInterface
 
             if ($attributeInstance instanceof HandlesAttributes) {
                 add_action('rest_api_init', function () use ($attributeInstance, $attributableWrapper, $method): void {
-                    $attributeInstance->handle(app(), $attributableWrapper, $method, $attributeInstance);
+                    $attributeInstance->handle($this->container, $attributableWrapper, $method, $attributeInstance);
                 });
             }
         } catch (\Throwable $throwable) {

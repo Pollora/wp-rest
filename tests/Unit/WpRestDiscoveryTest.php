@@ -2,12 +2,14 @@
 
 declare(strict_types=1);
 
+use Brain\Monkey\Functions;
 use Pollora\Attributes\Attributable;
 use Pollora\Attributes\WpRestRoute;
 use Pollora\Attributes\WpRestRoute\Method;
 use Pollora\Discovery\Domain\Models\DiscoveryLocation;
 use Pollora\Discovery\Infrastructure\Services\ReflectionCache;
 use Pollora\WpRest\Infrastructure\Services\WpRestDiscovery;
+use Spatie\StructureDiscoverer\Data\DiscoveredClass;
 
 // Mock WordPress functions if they don't exist
 if (! function_exists('register_rest_route')) {
@@ -27,6 +29,31 @@ if (! function_exists('add_action')) {
         $wp_actions[$hook][] = $callback;
 
         return true;
+    }
+}
+
+if (! class_exists('WP_REST_Request')) {
+    eval('class WP_REST_Request {}');
+}
+
+final class DocumentRepository
+{
+    public function title(): string
+    {
+        return 'Annual report';
+    }
+}
+
+// A controller with a dependency, given by the container
+#[WpRestRoute('api/v1', '/reports')]
+final readonly class ReportsController
+{
+    public function __construct(private DocumentRepository $documents) {}
+
+    #[Method('GET')]
+    public function index(): array
+    {
+        return ['title' => $this->documents->title()];
     }
 }
 
@@ -184,6 +211,37 @@ describe('WpRestDiscovery', function (): void {
 
         // Should not throw, just log errors
         expect(fn () => $discovery->apply())->not->toThrow(Exception::class);
+    });
+
+    test('registers each #[Method] on rest_api_init and calls the controller with its dependencies', function (): void {
+        $hooks = [];
+        $routes = [];
+        Functions\when('add_action')->alias(function (string $hook, callable $callback) use (&$hooks): bool {
+            $hooks[$hook][] = $callback;
+
+            return true;
+        });
+        Functions\when('register_rest_route')->alias(function (string $namespace, string $route, array $args) use (&$routes): bool {
+            $routes[] = ['namespace' => $namespace, 'route' => $route, 'args' => $args];
+
+            return true;
+        });
+
+        $discovery = new WpRestDiscovery;
+        $discovery->discover(new DiscoveryLocation('', __DIR__), DiscoveredClass::fromReflection(new ReflectionClass(ReportsController::class)), new ReflectionCache);
+        $discovery->apply();
+
+        expect($routes)->toBe([]);
+
+        foreach ($hooks['rest_api_init'] ?? [] as $callback) {
+            $callback();
+        }
+
+        expect($routes)->toHaveCount(1)
+            ->and($routes[0]['namespace'])->toBe('api/v1')
+            ->and($routes[0]['route'])->toBe('/reports')
+            ->and($routes[0]['args']['methods'])->toBe(['GET'])
+            ->and($routes[0]['args']['callback'](Mockery::mock(WP_REST_Request::class)))->toBe(['title' => 'Annual report']);
     });
 
     test('returns correct identifier', function (): void {

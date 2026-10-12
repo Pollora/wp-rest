@@ -6,57 +6,28 @@ namespace Pollora\WpRest\Infrastructure\Services;
 
 use Pollora\Attributes\Attributable;
 use Pollora\Attributes\WpRestRoute\Permission;
-use Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface;
-use Psr\Log\LoggerInterface;
 
 /**
  * Wrapper class to make any class compatible with Attributable interface.
  *
  * This class acts as a bridge between regular classes that use WpRestRoute attributes
- * and the Attributable interface required by the Method attribute handlers.
+ * and the Attributable interface required by the Method attribute handlers. It carries
+ * the controller instance the discovery resolved, dependencies included.
  */
 final readonly class WpRestAttributableWrapper implements Attributable
 {
-    private mixed $realInstance;
-
     public function __construct(
-        private string $className,
+        private object $realInstance,
         public string $namespace,
         public string $route,
         public string|Permission|null $classPermission = null,
-        private ?ReflectionCacheInterface $reflectionCache = null
-    ) {
-        $this->realInstance = $this->createRealInstance();
-    }
+    ) {}
 
     /**
      * Get the real instance of the wrapped class.
      */
-    public function getRealInstance(): mixed
+    public function getRealInstance(): object
     {
         return $this->realInstance;
-    }
-
-    /**
-     * Create an instance of the real class.
-     */
-    private function createRealInstance(): mixed
-    {
-        try {
-            $reflectionClass = $this->reflectionCache->getClassReflection($this->className);
-
-            if ($reflectionClass->isInstantiable()) {
-                return $reflectionClass->newInstance();
-            }
-        } catch (\Throwable $throwable) {
-            try {
-                resolve(LoggerInterface::class)->error(
-                    sprintf('Failed to create instance of %s: ', $this->className).$throwable->getMessage()
-                );
-            } catch (\Throwable) {
-            }
-        }
-
-        return null;
     }
 }
