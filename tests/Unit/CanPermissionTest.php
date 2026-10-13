@@ -5,10 +5,10 @@ declare(strict_types=1);
 use Brain\Monkey\Functions;
 use Pollora\WpRest\Infrastructure\Services\WpRestRouteRegistrar;
 use Pollora\WpRest\Permissions\Can;
-use Tests\Unit\Role\Fixtures\EventCap;
 
-if (! class_exists('WP_REST_Request')) {
-    eval('class WP_REST_Request {}');
+enum EventCap: string
+{
+    case ExportAttendees = 'export_attendees';
 }
 
 beforeEach(function (): void {

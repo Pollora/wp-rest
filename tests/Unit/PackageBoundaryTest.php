@@ -3,14 +3,13 @@
 declare(strict_types=1);
 
 use Pollora\Support\WpGlobals;
-use Pollora\WpRest\Infrastructure\Providers\WpRestAttributeServiceProvider;
 
 /**
- * The WpRest module becomes pollora/wp-rest, which runs without Laravel's
- * application. Only its service provider may reach for Laravel; the rest uses
- * the attributes, discovery, PSR contracts and WordPress.
+ * pollora/wp-rest runs without Laravel's application: it uses the attributes,
+ * discovery, PSR contracts and WordPress, nothing else. The Laravel service
+ * provider lives in the framework.
  */
-arch('the WpRest module stays free of the Laravel application')
+arch('wp-rest stays free of the Laravel application')
     ->expect(['Pollora\WpRest', WpGlobals::class])
     ->toOnlyUse([
         'Pollora\WpRest',
@@ -28,4 +27,4 @@ arch('the WpRest module stays free of the Laravel application')
         'register_rest_route',
         'rest_authorization_required_code',
     ])
-    ->ignoring([WpRestAttributeServiceProvider::class, 'WP_REST_Request', 'WP_Error']);
+    ->ignoring(['WP_REST_Request', 'WP_Error']);
