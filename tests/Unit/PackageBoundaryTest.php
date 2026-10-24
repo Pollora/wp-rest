@@ -21,7 +21,9 @@ arch('wp-rest stays free of the Laravel application')
         'Spatie\StructureDiscoverer',
         // WordPress
         '__',
+        '_doing_it_wrong',
         'add_action',
+        'apply_filters',
         'current_user_can',
         'is_user_logged_in',
         'register_rest_route',
