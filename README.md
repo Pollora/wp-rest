@@ -54,17 +54,24 @@ final class DocumentApi
 
 - `GET wp-json/app/v1/documents/18` calls `show(18)`. A parameter typed `WP_REST_Request` receives the request; the others are read from the route by name.
 - `#[Method]` accepts `GET`, `POST`, `PUT`, `DELETE` and `PATCH`, alone or as a list; with any other verb the route is not registered, and the logger says why.
-- A method's permission replaces the route's. Without either, the route is public.
+- A method's permission replaces the route's. Without either, the route is public today, and WordPress is told it is doing it wrong (shown with `WP_DEBUG`). Say so with `Everyone::class` when a route is public on purpose: the next major version refuses routes without a permission.
 
 ### Permissions
 
 | Class | Allows |
 |---|---|
+| `Everyone` | anyone, logged in or not: a route that is public on purpose |
 | `IsLoggedIn` | any logged-in user |
 | `IsAdmin` | users who can `manage_options` |
 | `new Can('edit_posts')` | users with a capability; `parameter:` passes a request parameter for a meta capability such as `edit_post` |
 
 A permission class of your own implements `Pollora\Attributes\WpRestRoute\Permission`: `allow(WP_REST_Request $request): bool|WP_Error`.
+
+To refuse routes without a permission today, as the next major version will, opt in with a filter:
+
+```php
+add_filter('pollora/wp_rest/private_by_default', '__return_true');
+```
 
 ## Wiring it outside Pollora
 

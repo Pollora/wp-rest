@@ -7,6 +7,7 @@ namespace Pollora\WpRest\Infrastructure\Services;
 use Pollora\Attributes\WpRestRoute\Method;
 use Pollora\Attributes\WpRestRoute\Permission;
 use Pollora\Support\WpGlobals;
+use Pollora\WpRest\Permissions\Everyone;
 use ReflectionMethod;
 use WP_Error;
 use WP_REST_Request;
@@ -19,6 +20,12 @@ use WP_REST_Request;
  */
 final class WpRestRouteRegistrar
 {
+    /**
+     * Filter that refuses every route declaring no permission, as the next
+     * major version will by default. Return true to opt in today.
+     */
+    public const string PRIVATE_BY_DEFAULT = 'pollora/wp_rest/private_by_default';
+
     /**
      * Register the REST route a #[Method] declares.
      *
@@ -40,7 +47,9 @@ final class WpRestRouteRegistrar
                     fn (WP_REST_Request $request): mixed => $this->handleRequest($instance, $context, $request)
                 ),
                 'args' => $this->extractArgsFromRoute($instance->route),
-                'permission_callback' => $this->resolvePermissionCallback($permissionCallback),
+                'permission_callback' => $permissionCallback === null
+                    ? $this->withoutPermission($instance)
+                    : $this->resolvePermissionCallback($permissionCallback),
             ]
         );
     }
@@ -109,17 +118,51 @@ final class WpRestRouteRegistrar
     }
 
     /**
-     * Resolves and executes the permission callback.
+     * The permission of a route that declares none.
      *
-     * @param  class-string<Permission>|Permission|null  $permissionCallback  The permission class or instance to use
+     * Such a route is public: WordPress calls it for anyone. That stays true
+     * for now, so no site breaks, but nothing in the code tells a deliberate
+     * public endpoint from a forgotten check. WordPress is told (shown with
+     * WP_DEBUG), Everyone::class makes a public route explicit, and the
+     * private_by_default filter refuses these routes today, as the next major
+     * version will.
+     *
+     * @param  WpRestAttributableWrapper  $instance  The route class wrapper
      * @return callable The permission function
      */
-    private function resolvePermissionCallback(string|Permission|null $permissionCallback): callable
+    private function withoutPermission(WpRestAttributableWrapper $instance): callable
     {
-        if ($permissionCallback === null) {
-            return '__return_true';
+        $route = trim($instance->namespace, '/').'/'.ltrim($instance->route, '/');
+
+        if (apply_filters(self::PRIVATE_BY_DEFAULT, false) === true) {
+            return static fn (): WP_Error => new WP_Error(
+                'rest_forbidden',
+                __('This endpoint declares no permission.'),
+                ['status' => rest_authorization_required_code()]
+            );
         }
 
+        _doing_it_wrong(
+            self::class.'::register',
+            sprintf(
+                'The REST route %s declares no permission, so anyone can call it. Pass permissionCallback: %s::class to keep it public on purpose, or a permission such as IsLoggedIn. The next major version refuses routes without a permission.',
+                $route,
+                Everyone::class,
+            ),
+            '0.2.0'
+        );
+
+        return '__return_true';
+    }
+
+    /**
+     * Resolves and executes the permission callback.
+     *
+     * @param  class-string<Permission>|Permission  $permissionCallback  The permission class or instance to use
+     * @return callable The permission function
+     */
+    private function resolvePermissionCallback(string|Permission $permissionCallback): callable
+    {
         if (is_string($permissionCallback) && (! class_exists($permissionCallback) || ! is_subclass_of($permissionCallback, Permission::class))) {
             return fn (): WP_Error => new WP_Error('rest_forbidden', __('Invalid permission handler.'), ['status' => 403]);
         }

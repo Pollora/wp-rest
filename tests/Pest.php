@@ -21,6 +21,8 @@ pest()->beforeEach(function (): void {
     Monkey\setUp();
     Functions\stubs([
         '__' => static fn (string $text): string => $text,
+        // A route without a permission tells WordPress it is doing it wrong.
+        '_doing_it_wrong' => static fn (): null => null,
         'add_action' => true,
         'register_rest_route' => true,
     ]);
