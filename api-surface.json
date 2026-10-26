@@ -1,6 +1,7 @@
 {
     "version": 1,
     "surface": {
+        "hook:pollora/wp-rest/private_by_default": "hook",
         "hook:pollora/wp_rest/private_by_default": "hook"
     }
 }

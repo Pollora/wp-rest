@@ -70,7 +70,7 @@ A permission class of your own implements `Pollora\Attributes\WpRestRoute\Permis
 To refuse routes without a permission today, as the next major version will, opt in with a filter:
 
 ```php
-add_filter('pollora/wp_rest/private_by_default', '__return_true');
+add_filter('pollora/wp-rest/private_by_default', '__return_true');
 ```
 
 ## Wiring it outside Pollora

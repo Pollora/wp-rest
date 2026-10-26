@@ -69,7 +69,7 @@ it('makes a public route explicit with Everyone, without a notice', function ():
 });
 
 it('refuses a route without a permission once a site opts in to private by default', function (): void {
-    Filters\expectApplied(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT)->once()->andReturn(true);
+    Filters\expectApplied(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT_FILTER)->once()->andReturn(true);
 
     $refusal = permissionOf(null)(Mockery::mock(WP_REST_Request::class));
 
@@ -79,8 +79,23 @@ it('refuses a route without a permission once a site opts in to private by defau
         ->and($refusal->data)->toBe(['status' => 401]);
 });
 
+it('still honours the filter under the name 0.2.0 gave it, and says it is deprecated', function (): void {
+    Functions\when('apply_filters_deprecated')->alias(function (string $hook, array $args, string $version, string $replacement): bool {
+        expect($hook)->toBe(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT)
+            ->and($version)->toBe('0.2.1')
+            ->and($replacement)->toBe(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT_FILTER);
+
+        return true;
+    });
+
+    $refusal = permissionOf(null)(Mockery::mock(WP_REST_Request::class));
+
+    expect($refusal)->toBeInstanceOf(WP_Error::class)
+        ->and($this->notices)->toBe([]);
+});
+
 it('still applies a declared permission, whatever the filter says', function (): void {
-    Filters\expectApplied(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT)->never();
+    Filters\expectApplied(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT_FILTER)->never();
     Functions\when('is_user_logged_in')->justReturn(true);
 
     expect(permissionOf(IsLoggedIn::class)(Mockery::mock(WP_REST_Request::class)))->toBeTrue();

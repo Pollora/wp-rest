@@ -24,6 +24,12 @@ final class WpRestRouteRegistrar
      * Filter that refuses every route declaring no permission, as the next
      * major version will by default. Return true to opt in today.
      */
+    public const string PRIVATE_BY_DEFAULT_FILTER = 'pollora/wp-rest/private_by_default';
+
+    /**
+     * The name 0.2.0 gave the filter, before it followed pollora/<module>/<event>:
+     * still honoured, reported as deprecated since 0.2.1. Use PRIVATE_BY_DEFAULT_FILTER.
+     */
     public const string PRIVATE_BY_DEFAULT = 'pollora/wp_rest/private_by_default';
 
     /**
@@ -134,7 +140,9 @@ final class WpRestRouteRegistrar
     {
         $route = trim($instance->namespace, '/').'/'.ltrim($instance->route, '/');
 
-        if (apply_filters(self::PRIVATE_BY_DEFAULT, false) === true) {
+        $privateByDefault = apply_filters_deprecated(self::PRIVATE_BY_DEFAULT, [false], '0.2.1', self::PRIVATE_BY_DEFAULT_FILTER);
+
+        if (apply_filters(self::PRIVATE_BY_DEFAULT_FILTER, $privateByDefault) === true) {
             return static fn (): WP_Error => new WP_Error(
                 'rest_forbidden',
                 __('This endpoint declares no permission.'),
