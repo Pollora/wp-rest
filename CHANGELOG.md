@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-10-26
+
 ### Changed
 
 - The filter is named `pollora/wp-rest/private_by_default`, to follow `pollora/<module>/<event>`. The name `0.2.0` gave it, `pollora/wp_rest/private_by_default`, still works and reports itself as deprecated
