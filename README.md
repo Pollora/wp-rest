@@ -54,7 +54,7 @@ final class DocumentApi
 
 - `GET wp-json/app/v1/documents/18` calls `show(18)`. A parameter typed `WP_REST_Request` receives the request; the others are read from the route by name.
 - `#[Method]` accepts `GET`, `POST`, `PUT`, `DELETE` and `PATCH`, alone or as a list; with any other verb the route is not registered, and the logger says why.
-- A method's permission replaces the route's. Without either, the route is public today, and WordPress is told it is doing it wrong (shown with `WP_DEBUG`). Say so with `Everyone::class` when a route is public on purpose: the next major version refuses routes without a permission.
+- A method's permission replaces the route's. Without either, the route is public today, and WordPress is told it is doing it wrong (shown with `WP_DEBUG`, on the pages that load the routes, never inside a REST response). Say so with `Everyone::class` when a route is public on purpose: the next major version refuses routes without a permission.
 
 ### Permissions
 

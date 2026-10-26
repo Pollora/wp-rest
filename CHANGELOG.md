@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Deprecated
 
-- A route without a permission: it stays public, and now calls `_doing_it_wrong()` with the route and the fix. The next major version refuses it. Declare `permissionCallback: Everyone::class` to keep a route public
+- A route without a permission: it stays public, and now calls `_doing_it_wrong()` with the route and the fix. The next major version refuses it. Declare `permissionCallback: Everyone::class` to keep a route public. The notice is skipped while a REST request is served, so a notice printed by `WP_DEBUG` never breaks a JSON response
 
 ## [0.1.0] - 2026-10-13
 

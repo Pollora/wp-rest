@@ -25,6 +25,7 @@ pest()->beforeEach(function (): void {
         '_doing_it_wrong' => static fn (): null => null,
         'add_action' => true,
         'register_rest_route' => true,
+        'wp_is_serving_rest_request' => false,
     ]);
 })->afterEach(function (): void {
     if ($container = Mockery::getContainer()) {

@@ -142,6 +142,11 @@ final class WpRestRouteRegistrar
             );
         }
 
+        // A notice printed while answering a REST request would corrupt its JSON
+        if (wp_is_serving_rest_request()) {
+            return '__return_true';
+        }
+
         _doing_it_wrong(
             self::class.'::register',
             sprintf(

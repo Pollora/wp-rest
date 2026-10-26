@@ -56,6 +56,13 @@ it('keeps a route without a permission public, and tells WordPress it is doing i
         ->and($this->notices[0][2])->toBe('0.2.0');
 });
 
+it('keeps the notice out of a REST response, where it would corrupt the JSON', function (): void {
+    Functions\when('wp_is_serving_rest_request')->justReturn(true);
+
+    expect(permissionOf(null)(Mockery::mock(WP_REST_Request::class)))->toBeTrue()
+        ->and($this->notices)->toBe([]);
+});
+
 it('makes a public route explicit with Everyone, without a notice', function (): void {
     expect(permissionOf(Everyone::class)(Mockery::mock(WP_REST_Request::class)))->toBeTrue()
         ->and($this->notices)->toBe([]);

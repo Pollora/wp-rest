@@ -28,5 +28,6 @@ arch('wp-rest stays free of the Laravel application')
         'is_user_logged_in',
         'register_rest_route',
         'rest_authorization_required_code',
+        'wp_is_serving_rest_request',
     ])
     ->ignoring(['WP_REST_Request', 'WP_Error']);
