@@ -24,6 +24,7 @@ arch('wp-rest stays free of the Laravel application')
         '_doing_it_wrong',
         'add_action',
         'apply_filters',
+        'apply_filters_deprecated',
         'current_user_can',
         'is_user_logged_in',
         'register_rest_route',

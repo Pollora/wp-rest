@@ -24,6 +24,8 @@ pest()->beforeEach(function (): void {
         // A route without a permission tells WordPress it is doing it wrong.
         '_doing_it_wrong' => static fn (): null => null,
         'add_action' => true,
+        // Nobody hooks the legacy filter name: the value passes through
+        'apply_filters_deprecated' => static fn (string $hook, array $args): mixed => $args[0],
         'register_rest_route' => true,
         'wp_is_serving_rest_request' => false,
     ]);

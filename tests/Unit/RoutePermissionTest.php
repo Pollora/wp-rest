@@ -79,6 +79,21 @@ it('refuses a route without a permission once a site opts in to private by defau
         ->and($refusal->data)->toBe(['status' => 401]);
 });
 
+it('still honours the filter under the name 0.2.0 gave it, and says it is deprecated', function (): void {
+    Functions\when('apply_filters_deprecated')->alias(function (string $hook, array $args, string $version, string $replacement): bool {
+        expect($hook)->toBe(WpRestRouteRegistrar::LEGACY_PRIVATE_BY_DEFAULT)
+            ->and($version)->toBe('0.2.1')
+            ->and($replacement)->toBe(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT);
+
+        return true;
+    });
+
+    $refusal = permissionOf(null)(Mockery::mock(WP_REST_Request::class));
+
+    expect($refusal)->toBeInstanceOf(WP_Error::class)
+        ->and($this->notices)->toBe([]);
+});
+
 it('still applies a declared permission, whatever the filter says', function (): void {
     Filters\expectApplied(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT)->never();
     Functions\when('is_user_logged_in')->justReturn(true);
