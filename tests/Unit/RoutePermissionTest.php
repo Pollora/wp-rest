@@ -48,29 +48,7 @@ beforeEach(function (): void {
     });
 });
 
-it('keeps a route without a permission public, and tells WordPress it is doing it wrong', function (): void {
-    expect(permissionOf(null)(Mockery::mock(WP_REST_Request::class)))->toBeTrue()
-        ->and($this->notices)->toHaveCount(1)
-        ->and($this->notices[0][0])->toBe(WpRestRouteRegistrar::class.'::register')
-        ->and($this->notices[0][1])->toContain('app/v1/status', Everyone::class)
-        ->and($this->notices[0][2])->toBe('0.2.0');
-});
-
-it('keeps the notice out of a REST response, where it would corrupt the JSON', function (): void {
-    Functions\when('wp_is_serving_rest_request')->justReturn(true);
-
-    expect(permissionOf(null)(Mockery::mock(WP_REST_Request::class)))->toBeTrue()
-        ->and($this->notices)->toBe([]);
-});
-
-it('makes a public route explicit with Everyone, without a notice', function (): void {
-    expect(permissionOf(Everyone::class)(Mockery::mock(WP_REST_Request::class)))->toBeTrue()
-        ->and($this->notices)->toBe([]);
-});
-
-it('refuses a route without a permission once a site opts in to private by default', function (): void {
-    Filters\expectApplied(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT_FILTER)->once()->andReturn(true);
-
+it('refuses a route without a permission by default', function (): void {
     $refusal = permissionOf(null)(Mockery::mock(WP_REST_Request::class));
 
     expect($this->notices)->toBe([])
@@ -79,18 +57,26 @@ it('refuses a route without a permission once a site opts in to private by defau
         ->and($refusal->data)->toBe(['status' => 401]);
 });
 
-it('still honours the filter under the name 0.2.0 gave it, and says it is deprecated', function (): void {
-    Functions\when('apply_filters_deprecated')->alias(function (string $hook, array $args, string $version, string $replacement): bool {
-        expect($hook)->toBe(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT)
-            ->and($version)->toBe('0.2.1')
-            ->and($replacement)->toBe(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT_FILTER);
+it('keeps a route without a permission public while a site opts out, and tells WordPress it is doing it wrong', function (): void {
+    Filters\expectApplied(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT_FILTER)->once()->andReturn(false);
 
-        return true;
-    });
+    expect(permissionOf(null)(Mockery::mock(WP_REST_Request::class)))->toBeTrue()
+        ->and($this->notices)->toHaveCount(1)
+        ->and($this->notices[0][0])->toBe(WpRestRouteRegistrar::class.'::register')
+        ->and($this->notices[0][1])->toContain('app/v1/status', Everyone::class)
+        ->and($this->notices[0][2])->toBe('2.0.0');
+});
 
-    $refusal = permissionOf(null)(Mockery::mock(WP_REST_Request::class));
+it('keeps the notice out of a REST response, where it would corrupt the JSON', function (): void {
+    Filters\expectApplied(WpRestRouteRegistrar::PRIVATE_BY_DEFAULT_FILTER)->once()->andReturn(false);
+    Functions\when('wp_is_serving_rest_request')->justReturn(true);
 
-    expect($refusal)->toBeInstanceOf(WP_Error::class)
+    expect(permissionOf(null)(Mockery::mock(WP_REST_Request::class)))->toBeTrue()
+        ->and($this->notices)->toBe([]);
+});
+
+it('makes a public route explicit with Everyone, without a notice', function (): void {
+    expect(permissionOf(Everyone::class)(Mockery::mock(WP_REST_Request::class)))->toBeTrue()
         ->and($this->notices)->toBe([]);
 });
 

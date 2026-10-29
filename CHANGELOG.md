@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-10-29
+
+A major release: a route that declares no permission is refused.
+
+### Changed
+
+- **A route without a permission is refused** (`rest_forbidden`, 401 for a visitor, 403 for a logged-in user). Until now it stayed public and called `_doing_it_wrong()`. Declare `permissionCallback: Everyone::class` on the routes that are public on purpose, or a permission such as `IsLoggedIn`
+- The `pollora/wp-rest/private_by_default` filter now defaults to `true`. Return `false` to keep the routes without a permission public while a site migrates; WordPress is then told, with `WP_DEBUG`, which route to fix
+
+### Removed
+
+- The `pollora/wp_rest/private_by_default` filter name and the `WpRestRouteRegistrar::PRIVATE_BY_DEFAULT` constant, deprecated since 0.2.1. Use `pollora/wp-rest/private_by_default`
+
 ## [0.2.1] - 2026-10-26
 
 ### Changed

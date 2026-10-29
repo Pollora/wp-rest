@@ -21,16 +21,11 @@ use WP_REST_Request;
 final class WpRestRouteRegistrar
 {
     /**
-     * Filter that refuses every route declaring no permission, as the next
-     * major version will by default. Return true to opt in today.
+     * Filter that decides whether a route declaring no permission is refused.
+     * It is, by default; return false to keep such routes public while a site
+     * migrates, with the notice that tells which route to fix.
      */
     public const string PRIVATE_BY_DEFAULT_FILTER = 'pollora/wp-rest/private_by_default';
-
-    /**
-     * The name 0.2.0 gave the filter, before it followed pollora/<module>/<event>:
-     * still honoured, reported as deprecated since 0.2.1. Use PRIVATE_BY_DEFAULT_FILTER.
-     */
-    public const string PRIVATE_BY_DEFAULT = 'pollora/wp_rest/private_by_default';
 
     /**
      * Register the REST route a #[Method] declares.
@@ -126,12 +121,11 @@ final class WpRestRouteRegistrar
     /**
      * The permission of a route that declares none.
      *
-     * Such a route is public: WordPress calls it for anyone. That stays true
-     * for now, so no site breaks, but nothing in the code tells a deliberate
-     * public endpoint from a forgotten check. WordPress is told (shown with
-     * WP_DEBUG), Everyone::class makes a public route explicit, and the
-     * private_by_default filter refuses these routes today, as the next major
-     * version will.
+     * Nothing in the code tells a deliberate public endpoint from a forgotten
+     * check, so such a route is refused: Everyone::class makes a public route
+     * explicit. A site that is migrating can return false from the
+     * private_by_default filter to keep these routes public; WordPress is then
+     * told which route to fix (shown with WP_DEBUG).
      *
      * @param  WpRestAttributableWrapper  $instance  The route class wrapper
      * @return callable The permission function
@@ -140,9 +134,7 @@ final class WpRestRouteRegistrar
     {
         $route = trim($instance->namespace, '/').'/'.ltrim($instance->route, '/');
 
-        $privateByDefault = apply_filters_deprecated(self::PRIVATE_BY_DEFAULT, [false], '0.2.1', self::PRIVATE_BY_DEFAULT_FILTER);
-
-        if (apply_filters(self::PRIVATE_BY_DEFAULT_FILTER, $privateByDefault) === true) {
+        if (apply_filters(self::PRIVATE_BY_DEFAULT_FILTER, true) !== false) {
             return static fn (): WP_Error => new WP_Error(
                 'rest_forbidden',
                 __('This endpoint declares no permission.'),
@@ -158,11 +150,11 @@ final class WpRestRouteRegistrar
         _doing_it_wrong(
             self::class.'::register',
             sprintf(
-                'The REST route %s declares no permission, so anyone can call it. Pass permissionCallback: %s::class to keep it public on purpose, or a permission such as IsLoggedIn. The next major version refuses routes without a permission.',
+                'The REST route %s declares no permission, so anyone can call it. Pass permissionCallback: %s::class to keep it public on purpose, or a permission such as IsLoggedIn. Without the pollora/wp-rest/private_by_default filter returning false, this route is refused.',
                 $route,
                 Everyone::class,
             ),
-            '0.2.0'
+            '2.0.0'
         );
 
         return '__return_true';
