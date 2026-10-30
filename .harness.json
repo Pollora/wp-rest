@@ -1,9 +1,7 @@
 {
     "profile": "core",
     "mode": "enforce",
-    "downstream": [
-        "framework"
-    ],
+    "downstream": [],
     "ratchet": {
         "phpstan_level": 5,
         "phpstan_baseline": 0
