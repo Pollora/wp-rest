@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Internal
+
+- The `Architecture` test suite runs `tests/Arch.php`, which the default run left out
+
 ## [2.0.0] - 2026-10-29
 
 A major release: a route that declares no permission is refused.
