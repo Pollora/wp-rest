@@ -86,3 +86,20 @@ it('still applies a declared permission, whatever the filter says', function ():
 
     expect(permissionOf(IsLoggedIn::class)(Mockery::mock(WP_REST_Request::class)))->toBeTrue();
 });
+
+describe('permission handlers that cannot be used', function (): void {
+    test('a permission class that does not exist refuses the route with a 403', function (): void {
+        $result = permissionOf('Missing\\Permission')(Mockery::mock(WP_REST_Request::class));
+
+        expect($result)->toBeInstanceOf(WP_Error::class)
+            ->and($result->code)->toBe('rest_forbidden')
+            ->and($result->data)->toBe(['status' => 403]);
+    });
+
+    test('a class that is not a Permission refuses the route with a 403', function (): void {
+        $result = permissionOf(StatusController::class)(Mockery::mock(WP_REST_Request::class));
+
+        expect($result)->toBeInstanceOf(WP_Error::class)
+            ->and($result->code)->toBe('rest_forbidden');
+    });
+});
