@@ -14,10 +14,13 @@ class WpGlobals
     /**
      * List of essential WordPress globals that are commonly needed.
      *
+     * The current user is not one of them: a wrapped callback is built when the route is registered, before
+     * WordPress authenticates the request, and `rest_cookie_check_errors()` logs the user out of a cookie request
+     * that carries no nonce. Putting the user captured at registration back would undo that check.
+     *
      * @var array<int, string>
      */
     private static array $essentialGlobals = [
-        'current_user',
         'wpdb',
         'wp_roles',
         'wp',

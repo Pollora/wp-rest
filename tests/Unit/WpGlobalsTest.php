@@ -60,11 +60,15 @@ it('adds an essential global once', function (): void {
 });
 
 it('lists the WordPress globals handled by default', function (): void {
-    expect(WpGlobals::getEssentialGlobals())->toContain('current_user', 'wpdb', 'wp_query');
+    expect(WpGlobals::getEssentialGlobals())->toContain('wpdb', 'wp_query');
 });
 
 it('replaces the whole list', function (): void {
     WpGlobals::setEssentialGlobals(['only_one']);
 
     expect(WpGlobals::getEssentialGlobals())->toBe(['only_one']);
+});
+
+it('never captures the current user, which WordPress changes while it authenticates a request', function (): void {
+    expect(WpGlobals::getEssentialGlobals())->not->toContain('current_user');
 });
