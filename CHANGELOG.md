@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [2.0.2] - 2026-11-23
 
+### Changed
+
+- Accepts pollora/discovery ^0.3 (`^0.1 || ^0.2 || ^0.3 || ^1.0`)
+
 ### Security
 
 - Route callbacks no longer put back the current user captured when the route was registered. WordPress logs the user out of a cookie request that carries no nonce (`rest_cookie_check_errors()`) after the routes are registered, and the stale user was restored for the permission check and the handler, which undid that CSRF protection. `current_user` is no longer in the globals `WpGlobals::wrap()` captures by default; `WpGlobals::addEssentialGlobal('current_user')` still adds it.
