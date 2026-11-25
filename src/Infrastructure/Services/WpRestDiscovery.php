@@ -12,6 +12,7 @@ use Pollora\Discovery\Domain\Contracts\DiscoveryLocationInterface;
 use Pollora\Discovery\Domain\Contracts\ReflectionCacheInterface;
 use Pollora\Discovery\Domain\Services\HasInstancePool;
 use Pollora\Discovery\Domain\Services\IsDiscovery;
+use Pollora\Discovery\Infrastructure\Services\ReflectionCache;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
@@ -94,7 +95,8 @@ final class WpRestDiscovery implements DiscoveryInterface
 
             try {
                 // Process the complete WP REST route configuration
-                $reflectionCache = $discoveredItem['reflection_cache'] ?? null;
+                // The cache is optional in the contract: without one, reflect through a cache of our own
+                $reflectionCache = $discoveredItem['reflection_cache'] ?? new ReflectionCache;
                 $this->processWpRestRoute($className, $reflectionCache);
             } catch (\Throwable $e) {
                 // Log the error but continue with other REST routes
@@ -124,9 +126,9 @@ final class WpRestDiscovery implements DiscoveryInterface
      * Process a complete WP REST route configuration from its class and attributes.
      *
      * @param  string  $className  The fully qualified class name
-     * @param  ReflectionCacheInterface|null  $reflectionCache  Optional reflection cache
+     * @param  ReflectionCacheInterface  $reflectionCache  The reflection cache
      */
-    private function processWpRestRoute(string $className, ?ReflectionCacheInterface $reflectionCache = null): void
+    private function processWpRestRoute(string $className, ReflectionCacheInterface $reflectionCache): void
     {
         try {
             $reflectionClass = $reflectionCache->getClassReflection($className);
@@ -165,9 +167,9 @@ final class WpRestDiscovery implements DiscoveryInterface
      *
      * @param  string  $className  The fully qualified class name
      * @param  WpRestAttributableWrapper  $attributableWrapper  The wrapper instance
-     * @param  ReflectionCacheInterface|null  $reflectionCache  Optional reflection cache
+     * @param  ReflectionCacheInterface  $reflectionCache  The reflection cache
      */
-    private function processMethodLevelAttributes(string $className, WpRestAttributableWrapper $attributableWrapper, ?ReflectionCacheInterface $reflectionCache = null): void
+    private function processMethodLevelAttributes(string $className, WpRestAttributableWrapper $attributableWrapper, ReflectionCacheInterface $reflectionCache): void
     {
         try {
             $methods = $reflectionCache->getPublicMethods($className);

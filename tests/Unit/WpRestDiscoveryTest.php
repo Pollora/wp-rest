@@ -219,6 +219,31 @@ describe('WpRestDiscovery', function (): void {
             ->and($routes[0]['args']['callback'](Mockery::mock(WP_REST_Request::class)))->toBe(['title' => 'Annual report']);
     });
 
+    test('registers the routes of a controller discovered without a reflection cache', function (): void {
+        $hooks = [];
+        $routes = [];
+        Functions\when('add_action')->alias(function (string $hook, callable $callback) use (&$hooks): bool {
+            $hooks[$hook][] = $callback;
+
+            return true;
+        });
+        Functions\when('register_rest_route')->alias(function (string $namespace, string $route, array $args) use (&$routes): bool {
+            $routes[] = $route;
+
+            return true;
+        });
+
+        $discovery = new WpRestDiscovery;
+        $discovery->discover(new DiscoveryLocation('', __DIR__), DiscoveredClass::fromReflection(new ReflectionClass(ReportsController::class)));
+        $discovery->apply();
+
+        foreach ($hooks['rest_api_init'] ?? [] as $callback) {
+            $callback();
+        }
+
+        expect($routes)->toBe(['/reports']);
+    });
+
     test('returns correct identifier', function (): void {
         $discovery = new WpRestDiscovery;
         expect($discovery->getIdentifier())->toBe('wp_rest_routes');

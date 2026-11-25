@@ -236,15 +236,18 @@ describe('WpRestDiscovery bookkeeping', function (): void {
     });
 
     it('logs the complete message when a class cannot be registered, and survives without a logger', function (): void {
+        $failing = Mockery::mock(ReflectionCacheInterface::class);
+        $failing->shouldReceive('getClassReflection')->andThrow(new RuntimeException('the cache is broken'));
         $item = [
             'class' => NamespacedController::class,
             'attribute' => new stdClass,
             'structure' => new stdClass,
+            'reflection_cache' => $failing,
         ];
 
         $logger = Mockery::mock(LoggerInterface::class);
         $logger->shouldReceive('error')->once()->with(
-            'Failed to register WP REST route from class '.NamespacedController::class.': Call to a member function getClassReflection() on null'
+            'Failed to register WP REST route from class '.NamespacedController::class.': the cache is broken'
         );
         $withLogger = new WpRestDiscovery($logger);
         $withLogger->getItems()->add(new DiscoveryLocation('', __DIR__), $item);
