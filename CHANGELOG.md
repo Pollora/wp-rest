@@ -11,6 +11,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - `WpRestDiscovery` registered no route, and only logged an error, when its discovery ran without a reflection cache: the contract (`DiscoveryInterface`) makes the cache optional, but the class dereferenced it. It now reflects through a cache of its own when none is given.
 
+### Security
+
+- `Can(parameter:)` answers 403 (401 when logged out) when the named request parameter is absent or is not a positive integer, instead of calling `current_user_can('edit_post', null)`, which WordPress resolves against the global `$post`.
+
+### Upgrade notes
+
+- A route using `Can('edit_post', parameter: 'id')` now refuses a request whose `id` is not a positive integer. The value is now passed to WordPress as an int.
+
 ## [2.0.3] - 2026-11-23
 
 ### Changed
