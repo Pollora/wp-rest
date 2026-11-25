@@ -107,7 +107,7 @@ final class WpRestRouteRegistrar
      * Extracts dynamic arguments from a WordPress route.
      *
      * @param  string  $route  The route pattern
-     * @return array The extracted arguments
+     * @return array<string, array{validate_callback: \Closure}> The extracted arguments, by name
      */
     private function extractArgsFromRoute(string $route): array
     {
