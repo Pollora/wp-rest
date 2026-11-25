@@ -32,6 +32,8 @@ final class WpRestDiscovery implements DiscoveryInterface
 
     /**
      * Cache for wrapper instances to avoid recreating them
+     *
+     * @var array<string, WpRestAttributableWrapper>
      */
     private array $wrapperCache = [];
 
@@ -106,7 +108,7 @@ final class WpRestDiscovery implements DiscoveryInterface
     /**
      * Find WpRestRoute attribute in the given attributes array.
      *
-     * @param  array  $attributes  The attributes to search through
+     * @param  array<int, object{class: string}>  $attributes  The attributes to search through
      * @return object|null The WpRestRoute attribute or null if not found
      */
     private function findWpRestRouteAttribute(array $attributes): ?object
@@ -202,7 +204,7 @@ final class WpRestDiscovery implements DiscoveryInterface
      * Process a single method-level attribute for REST route registration.
      *
      * @param  ReflectionMethod  $method  The method with the attribute
-     * @param  \ReflectionAttribute  $attribute  The attribute to process
+     * @param  \ReflectionAttribute<object>  $attribute  The attribute to process
      * @param  WpRestAttributableWrapper  $attributableWrapper  The wrapper instance
      */
     private function processMethodAttribute(

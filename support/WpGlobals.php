@@ -37,7 +37,7 @@ class WpGlobals
      * Wraps a callback function with WordPress globals.
      *
      * @param  callable  $callback  The function to wrap
-     * @param  array|null  $globals  Optional specific list of globals to preserve
+     * @param  array<int, string>|null  $globals  Optional specific list of globals to preserve
      * @return callable The wrapped function with access to WordPress globals
      */
     public static function wrap(callable $callback, ?array $globals = null): callable
@@ -74,7 +74,7 @@ class WpGlobals
     /**
      * Sets multiple essential globals at once.
      *
-     * @param  array  $globalNames  An array of global variable names
+     * @param  array<int, string>  $globalNames  An array of global variable names
      */
     public static function setEssentialGlobals(array $globalNames): void
     {
@@ -84,7 +84,7 @@ class WpGlobals
     /**
      * Gets the current list of essential globals.
      *
-     * @return array The list of essential global variable names
+     * @return array<int, string> The list of essential global variable names
      */
     public static function getEssentialGlobals(): array
     {
