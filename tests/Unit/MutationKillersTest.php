@@ -235,6 +235,18 @@ describe('WpRestDiscovery bookkeeping', function (): void {
             ->and($item)->toHaveKey('reflection_cache');
     });
 
+    it('leaves alone what the pool holds that discover() did not collect', function (): void {
+        $logger = Mockery::mock(LoggerInterface::class);
+        $logger->shouldNotReceive('error');
+        $discovery = new WpRestDiscovery($logger);
+        $discovery->getItems()->add(new DiscoveryLocation('', __DIR__), ['not' => 'ours']);
+        $discovery->getItems()->add(new DiscoveryLocation('', __DIR__), ['class' => 42]);
+
+        $discovery->apply();
+
+        expect(true)->toBeTrue();
+    });
+
     it('logs the complete message when a class cannot be registered, and survives without a logger', function (): void {
         $failing = Mockery::mock(ReflectionCacheInterface::class);
         $failing->shouldReceive('getClassReflection')->andThrow(new RuntimeException('the cache is broken'));

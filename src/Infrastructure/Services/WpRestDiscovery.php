@@ -89,16 +89,18 @@ final class WpRestDiscovery implements DiscoveryInterface
     public function apply(): void
     {
         foreach ($this->getItems() as $discoveredItem) {
-            [
-                'class' => $className,
-                'attribute' => $restRouteAttribute,
-                'structure' => $structure
-            ] = $discoveredItem;
+            // What discover() collected: anything else in the pool is not ours to register
+            if (! is_array($discoveredItem) || ! is_string($discoveredItem['class'] ?? null)) {
+                continue;
+            }
+
+            $className = $discoveredItem['class'];
 
             try {
                 // Process the complete WP REST route configuration
                 // The cache is optional in the contract: without one, reflect through a cache of our own
-                $reflectionCache = $discoveredItem['reflection_cache'] ?? new ReflectionCache;
+                $reflectionCache = $discoveredItem['reflection_cache'] ?? null;
+                $reflectionCache = $reflectionCache instanceof ReflectionCacheInterface ? $reflectionCache : new ReflectionCache;
                 $this->processWpRestRoute($className, $reflectionCache);
             } catch (\Throwable $e) {
                 // Log the error but continue with other REST routes
