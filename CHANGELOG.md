@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Fixed
+
+- `WpRestDiscovery` registered no route, and only logged an error, when its discovery ran without a reflection cache: the contract (`DiscoveryInterface`) makes the cache optional, but the class dereferenced it. It now reflects through a cache of its own when none is given.
+
 ## [2.0.3] - 2026-11-23
 
 ### Changed
