@@ -16,6 +16,7 @@ use Pollora\Discovery\Infrastructure\Services\ReflectionCache;
 use Psr\Container\ContainerInterface;
 use Psr\Log\LoggerInterface;
 use ReflectionMethod;
+use Spatie\StructureDiscoverer\Data\DiscoveredAttribute;
 use Spatie\StructureDiscoverer\Data\DiscoveredClass;
 use Spatie\StructureDiscoverer\Data\DiscoveredStructure;
 
@@ -112,7 +113,7 @@ final class WpRestDiscovery implements DiscoveryInterface
     /**
      * Find WpRestRoute attribute in the given attributes array.
      *
-     * @param  array<int, object{class: string}>  $attributes  The attributes to search through
+     * @param  array<DiscoveredAttribute>  $attributes  The attributes to search through
      * @return object|null The WpRestRoute attribute or null if not found
      */
     private function findWpRestRouteAttribute(array $attributes): ?object
