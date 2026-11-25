@@ -40,8 +40,8 @@ final class WpRestRouteRegistrar
         $permissionCallback = $methodPermission ?? $instance->classPermission;
 
         register_rest_route(
-            $instance->namespace,
-            $instance->route,
+            $instance->namespace, // @phpstan-ignore argument.type (an empty namespace is the developer's mistake: register_rest_route() refuses it itself, with its own _doing_it_wrong notice)
+            $instance->route, // @phpstan-ignore argument.type (an empty route is the developer's mistake: register_rest_route() refuses it itself, with its own _doing_it_wrong notice)
             [
                 'methods' => $attribute->getMethods(),
                 'callback' => WpGlobals::wrap(
@@ -163,7 +163,7 @@ final class WpRestRouteRegistrar
     /**
      * Resolves and executes the permission callback.
      *
-     * @param  class-string<Permission>|Permission  $permissionCallback  The permission class or instance to use
+     * @param  string|Permission  $permissionCallback  The permission instance, or the class name of one (any other string is refused when the route is called)
      * @return callable The permission function
      */
     private function resolvePermissionCallback(string|Permission $permissionCallback): callable
