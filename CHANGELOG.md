@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [2.0.4] - 2026-11-26
+
 ### Fixed
 
 - `WpRestDiscovery` registered no route, and only logged an error, when its discovery ran without a reflection cache: the contract (`DiscoveryInterface`) makes the cache optional, but the class dereferenced it. It now reflects through a cache of its own when none is given.
@@ -17,7 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Upgrade notes
 
-- A route using `Can('edit_post', parameter: 'id')` now refuses a request whose `id` is not a positive integer. The value is now passed to WordPress as an int.
+- A route using `Can('edit_post', parameter: 'id')` now refuses a request whose `id` is not a positive integer. The value is now passed to WordPress as an int. A custom meta capability that takes another kind of identifier through `parameter` (a slug, a UUID) is now always refused: write a `Permission` class that reads the parameter itself.
 
 ## [2.0.3] - 2026-11-23
 
